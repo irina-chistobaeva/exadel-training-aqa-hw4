@@ -1,4 +1,48 @@
 exports.config = {
+    //BrowserStack Config
+    user: 'irinachistobaeva_XPk9cM',
+    key: 'Tob8eddDUtKnyAeg4rqs',
+    services: [
+        ['browserstack']
+    ],
+
+    capabilities: [{
+        'bstack:options': {
+            "os": "Windows",
+            "osVersion": "10",
+            "local": "false",
+            "seleniumVersion": "3.10.0",
+            "userName": "irinachistobaeva_XPk9cM",
+            "accessKey": "Tob8eddDUtKnyAeg4rqs",
+        },
+        "browserName": "Firefox",
+        "browserVersion": "latest",
+    },
+    {
+        'bstack:options': {
+            "os": "OS X",
+            "osVersion": "Monterey",
+            "local": "false",
+            "seleniumVersion": "3.5.2",
+            "userName": "irinachistobaeva_XPk9cM",
+            "accessKey": "Tob8eddDUtKnyAeg4rqs",
+        },
+        "browserName": "Edge",
+        "browserVersion": "latest",
+    },
+    {
+        'bstack:options': {
+            "osVersion": "15",
+            "deviceName": "iPhone XS",
+            "realMobile": "true",
+            "local": "false",
+            "userName": "irinachistobaeva_XPk9cM",
+            "accessKey": "Tob8eddDUtKnyAeg4rqs",
+        },
+        "browserName": "iPhone",
+    },
+    ],
+
     specs: [
         './specs/**/*.js'
     ],
@@ -7,11 +51,11 @@ exports.config = {
     ],
     automationProtocol: 'webdriver',
     maxInstances: 10,
-    capabilities: [{
-        maxInstances: 5,
-        browserName: 'chrome',
-        acceptInsecureCerts: true
-    }],
+    // capabilities: [{
+    //     maxInstances: 5,
+    //     browserName: 'chrome',
+    //     acceptInsecureCerts: true
+    // }],
     // Level of logging verbosity: trace | debug | info | warn | error | silent
     logLevel: 'warn',
     bail: 0,
@@ -19,7 +63,7 @@ exports.config = {
     waitforTimeout: 10000,
     connectionRetryTimeout: 120000,
     connectionRetryCount: 3,
-    services: ['chromedriver'],
+    //services: ['chromedriver'],
 
     framework: 'mocha',
     //
@@ -57,8 +101,22 @@ exports.config = {
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      */
-    // onPrepare: function (config, capabilities) {
-    // },
+    onPrepare: function (config, capabilities) {
+        const fs = require('fs');
+        const path = require('path');
+
+        const directory = './screenshots';
+
+        fs.readdir(directory, (err, files) => {
+            if (err) throw err;
+
+            for (const file of files) {
+                fs.unlink(path.join(directory, file), err => {
+                    if (err) throw err;
+                });
+            }
+        });
+    },
     /**
      * Gets executed before a worker process is spawned and can be used to initialise specific service
      * for that worker as well as modify runtime environments in an async fashion.
@@ -132,6 +190,9 @@ exports.config = {
     afterTest: async function (test, context, { error, result, duration, passed, retries }) {
         if (!passed) {
             await browser.takeScreenshot();
+            const currentDate = new Date().toLocaleString().replace(/[:\s\/]/g, '_')
+            const screenshotName = currentDate + '_' + test.title.replace(/[:\s]/g, '_');
+            await browser.saveScreenshot(`./screenshots/${screenshotName}.png`);
         }
     },
 
